@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Eidolon is a desktop AI assistant application built with Electron that combines conversational AI chat with specialized creative studios for writing and image generation. The mascot is Tweek the Sloth - a caffeinated sloth wearing a "Ship it" shirt who lives on a pirate ship.
 
-**Status:** Planning/specification phase - no code exists yet.
+**Status:** Sprint 0 complete - Infrastructure and research documentation done.
 
 ## Technical Stack (Planned)
 
@@ -82,6 +82,37 @@ Tweek appears in: empty states, loading (long), success, errors, onboarding, abo
 | `eidolon-brand-identity.md` | Brand colors, typography, Tweek guidelines |
 | `eidolon-marketing-website-spec.md` | Marketing site SEO/AEO strategy, content plan |
 
+## Git Workflow
+
+See [docs/GITHUB_WORKFLOW.md](docs/GITHUB_WORKFLOW.md) for complete documentation.
+
+### Branch Structure
+- `main` - Production branch, always deployable
+- `dev` - Development integration branch
+- `sprint-X/epic-name` - Feature branches for each epic
+
+### Workflow Summary
+1. **Create feature branch** from `dev`: `git checkout -b sprint-X/epic-name`
+2. **Implement stories** with conventional commits
+3. **Run local checks**: `bun run lint && bun run typecheck && bun run test`
+4. **Push feature branch**: `git push -u origin sprint-X/epic-name`
+5. **Run Codex review**: `codex review . --model gpt-codex-5.2`
+6. **Fix any issues** from code review
+7. **Open PR** from feature branch → `dev`
+8. **CI runs**: lint, typecheck, test, build on all platforms
+9. **GitHub Copilot code review** on the PR
+10. **Merge to dev** after CI passes and review approved
+11. **Open PR** from `dev` → `main`
+12. **Merge to main** to sync production
+
+### Commit Convention
+```
+type(scope): description
+
+Types: feat, fix, docs, style, refactor, test, chore
+Scope: desktop, web, shared, ci, docs
+```
+
 ## Development Approach
 
 The PRD specifies an "agentic development" methodology:
@@ -90,3 +121,25 @@ The PRD specifies an "agentic development" methodology:
 3. Write tests immediately after features
 4. 20% time on agent-driven refactoring
 5. Prefer CLI tools (gh, bun) over MCP servers
+
+## Commands
+
+```bash
+# Development
+bun install              # Install dependencies
+bun run dev              # Start all apps in dev mode
+bun run build            # Build all packages
+bun run typecheck        # Run TypeScript checks
+bun run lint             # Run linting
+bun run test             # Run tests
+
+# Code Review
+codex review . --model gpt-codex-5.2 --output detailed
+
+# Git Workflow
+git checkout dev && git pull
+git checkout -b sprint-X/epic-name
+# ... make changes ...
+git push -u origin sprint-X/epic-name
+gh pr create --base dev --title "Epic X.X: Description"
+```
