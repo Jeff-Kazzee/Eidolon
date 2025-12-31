@@ -87,6 +87,14 @@ jobs:
       - name: Build
         run: bun run build
 
+      - name: Verify shared package build
+        run: |
+          if [ ! -f "packages/shared/dist/index.js" ]; then
+            echo "Error: Shared package build output not found"
+            exit 1
+          fi
+          echo "Shared package build verified"
+
   # Summary job that depends on all other jobs
   ci-success:
     name: CI Success

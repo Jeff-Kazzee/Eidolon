@@ -4,6 +4,7 @@
   "private": true,
   "description": "Shared utilities, types, and design tokens for Eidolon",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
@@ -16,12 +17,16 @@
       "import": "./dist/design-tokens.js"
     }
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
-    "dev": "echo 'Shared dev not yet configured'",
-    "build": "echo 'Shared build not yet configured'",
-    "lint": "echo 'Shared lint not yet configured'",
-    "typecheck": "echo 'Shared typecheck not yet configured'",
-    "test": "echo 'Shared tests not yet configured'",
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'No tests yet' && exit 0",
     "clean": "rimraf dist"
   },
   "devDependencies": {
