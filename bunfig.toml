@@ -1,0 +1,14 @@
+[install]
+# Use exact versions for reproducibility
+exact = true
+
+# Prefer offline cache when available
+prefer-offline = true
+
+[run]
+# Set default shell for scripts
+shell = "system"
+
+[test]
+# Test configuration
+coverage = true
