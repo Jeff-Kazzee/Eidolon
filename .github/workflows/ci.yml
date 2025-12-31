@@ -120,9 +120,13 @@ jobs:
         run: bun run build
 
       - name: Verify shared package build
+        shell: bash
         run: |
           if [ ! -f "packages/shared/dist/index.js" ]; then
             echo "Error: Shared package build output not found"
+            echo "Contents of packages/shared:"
+            ls -la packages/shared/ || true
+            ls -la packages/shared/dist/ || true
             exit 1
           fi
           echo "Shared package build verified"
