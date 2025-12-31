@@ -9,6 +9,7 @@ out/
 build/
 .next/
 .turbo/
+*.tsbuildinfo
 
 # Electron
 release/
