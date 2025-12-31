@@ -1,0 +1,44 @@
+{
+  "name": "eidolon",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop AI assistant with chat, writing studio, and image generation",
+  "author": "Jeff Kazzee",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"bun run dev:shared\" \"bun run dev:desktop\" \"bun run dev:web\"",
+    "dev:shared": "cd packages/shared && bun run dev",
+    "dev:desktop": "cd apps/desktop && bun run dev",
+    "dev:web": "cd apps/web && bun run dev",
+    "build": "bun run build:shared && bun run build:desktop && bun run build:web",
+    "build:shared": "cd packages/shared && bun run build",
+    "build:desktop": "cd apps/desktop && bun run build",
+    "build:web": "cd apps/web && bun run build",
+    "lint": "bun run lint:shared && bun run lint:desktop && bun run lint:web",
+    "lint:shared": "cd packages/shared && bun run lint",
+    "lint:desktop": "cd apps/desktop && bun run lint",
+    "lint:web": "cd apps/web && bun run lint",
+    "typecheck": "tsc -b",
+    "test": "bun run test:shared && bun run test:desktop && bun run test:web",
+    "test:shared": "cd packages/shared && bun run test",
+    "test:desktop": "cd apps/desktop && bun run test",
+    "test:web": "cd apps/web && bun run test",
+    "clean": "cd packages/shared && bun run clean && cd ../../apps/desktop && bun run clean && cd ../web && bun run clean",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.0",
+    "concurrently": "^9.1.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "bun@1.1.0"
+}

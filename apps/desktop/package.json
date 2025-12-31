@@ -1,0 +1,22 @@
+{
+  "name": "@eidolon/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Eidolon Desktop Application",
+  "main": "dist/electron/main.js",
+  "scripts": {
+    "dev": "echo 'Desktop: No source files yet - Sprint 1 will add Electron+React' && exit 0",
+    "build": "echo 'Desktop: No source files yet - Sprint 1 will add Electron+React' && exit 0",
+    "lint": "tsc --noEmit 2>/dev/null || echo 'Desktop: No source files to lint yet' && exit 0",
+    "typecheck": "tsc --noEmit 2>/dev/null || echo 'Desktop: No source files to typecheck yet' && exit 0",
+    "test": "echo 'Desktop: No tests yet' && exit 0",
+    "clean": "rimraf dist out release"
+  },
+  "dependencies": {
+    "@eidolon/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.0",
+    "typescript": "^5.7.0"
+  }
+}

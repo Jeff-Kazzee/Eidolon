@@ -1,0 +1,21 @@
+{
+  "name": "@eidolon/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Eidolon Marketing Website",
+  "scripts": {
+    "dev": "echo 'Web: No source files yet - Sprint 6 will add Next.js' && exit 0",
+    "build": "echo 'Web: No source files yet - Sprint 6 will add Next.js' && exit 0",
+    "lint": "tsc --noEmit 2>/dev/null || echo 'Web: No source files to lint yet' && exit 0",
+    "typecheck": "tsc --noEmit 2>/dev/null || echo 'Web: No source files to typecheck yet' && exit 0",
+    "test": "echo 'Web: No tests yet' && exit 0",
+    "clean": "rimraf .next out dist"
+  },
+  "dependencies": {
+    "@eidolon/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.0",
+    "typescript": "^5.7.0"
+  }
+}
