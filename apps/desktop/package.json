@@ -1,0 +1,21 @@
+{
+  "name": "@eidolon/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Eidolon Desktop Application",
+  "main": "dist/electron/main.js",
+  "scripts": {
+    "dev": "echo 'Desktop dev server not yet configured'",
+    "build": "echo 'Desktop build not yet configured'",
+    "lint": "echo 'Desktop lint not yet configured'",
+    "typecheck": "echo 'Desktop typecheck not yet configured'",
+    "test": "echo 'Desktop tests not yet configured'",
+    "clean": "rimraf dist out"
+  },
+  "dependencies": {
+    "@eidolon/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.0"
+  }
+}

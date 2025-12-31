@@ -1,0 +1,35 @@
+{
+  "name": "eidolon",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop AI assistant with chat, writing studio, and image generation",
+  "author": "Jeff Kazzee",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter '*' dev",
+    "dev:desktop": "bun run --filter @eidolon/desktop dev",
+    "dev:web": "bun run --filter @eidolon/web dev",
+    "build": "bun run --filter '*' build",
+    "build:desktop": "bun run --filter @eidolon/desktop build",
+    "build:web": "bun run --filter @eidolon/web build",
+    "lint": "bun run --filter '*' lint",
+    "typecheck": "bun run --filter '*' typecheck",
+    "test": "bun run --filter '*' test",
+    "clean": "bun run --filter '*' clean",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "bun@1.1.0"
+}
