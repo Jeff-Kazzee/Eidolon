@@ -161,6 +161,78 @@ Add DevTools toggle in dev menu.
 
 ---
 
+## Hot Reload Not Working
+
+### Symptom
+Changes to renderer code don't appear without full restart.
+
+### Cause
+- Vite HMR connection blocked
+- electron-vite not configured correctly
+- Browser caching
+
+### Solution
+1. Check Vite dev server console for HMR errors
+2. Verify electron-vite config has renderer section:
+   ```typescript
+   renderer: {
+     plugins: [react()],
+     server: {
+       port: 5173
+     }
+   }
+   ```
+3. Hard refresh: `Ctrl+Shift+R` / `Cmd+Shift+R`
+
+### Prevention
+Use electron-vite's built-in HMR support.
+
+---
+
+## Main Process Changes Not Applied
+
+### Symptom
+Changes to main.ts or preload.ts don't take effect.
+
+### Cause
+Main process requires full restart, unlike renderer HMR.
+
+### Solution
+1. Stop and restart: `bun run dev`
+2. electron-vite should auto-restart main process on changes
+
+### Prevention
+Use nodemon or electron-vite's built-in watcher.
+
+---
+
+## Production Build Fails
+
+### Symptom
+`bun run build` completes but app won't start.
+
+### Cause
+- Path resolution differences between dev and prod
+- Missing assets in build output
+- Native modules not rebuilt
+
+### Solution
+1. Check file paths use `__dirname` correctly:
+   ```typescript
+   // Development vs Production paths
+   const isDev = !app.isPackaged;
+   const preloadPath = isDev
+     ? join(__dirname, '../preload/index.js')
+     : join(__dirname, 'preload.js');
+   ```
+2. Verify assets are copied to dist
+3. Rebuild native modules: `electron-rebuild`
+
+### Prevention
+Test production builds regularly with `bun run preview`.
+
+---
+
 ## Adding New Issues
 
 Found a new issue? Add it using this template:

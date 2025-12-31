@@ -167,6 +167,69 @@ Document which extensions are included and why.
 
 ---
 
+## Selection Lost After Action
+
+### Symptom
+Cursor/selection disappears after clicking toolbar button.
+
+### Cause
+Focus moved to toolbar button, editor lost focus.
+
+### Solution
+1. Always chain with `.focus()`:
+   ```typescript
+   // Wrong
+   editor.commands.toggleBold()
+
+   // Correct
+   editor.chain().focus().toggleBold().run()
+   ```
+2. Prevent button focus:
+   ```typescript
+   <button
+     onMouseDown={(e) => e.preventDefault()}
+     onClick={() => editor.chain().focus().toggleBold().run()}
+   >
+     Bold
+   </button>
+   ```
+
+### Prevention
+Always use `.chain().focus()` pattern.
+
+---
+
+## Content Not Saving
+
+### Symptom
+Changes lost after closing or reloading.
+
+### Cause
+- Save not triggered
+- Autosave debounce too long
+- IPC failure
+
+### Solution
+1. Implement proper autosave:
+   ```typescript
+   const editor = useEditor({
+     onUpdate: ({ editor }) => {
+       debouncedSave(editor.getHTML())
+     }
+   })
+   ```
+2. Save on blur:
+   ```typescript
+   editor.on('blur', () => saveContent())
+   ```
+3. Check IPC connection
+
+### Prevention
+- Show save indicator
+- Warn on unsaved changes before close
+
+---
+
 ## Tiptap Debug Tips
 
 ```typescript

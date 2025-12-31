@@ -177,6 +177,83 @@ Error: Request timeout
 
 ---
 
+## Context Length Exceeded
+
+### Symptom
+```
+Error: 400 Bad Request - context_length_exceeded
+```
+
+### Cause
+Message history exceeds model's maximum context window.
+
+### Solution
+1. Implement automatic context truncation:
+   ```typescript
+   function truncateMessages(messages: Message[], maxTokens: number): Message[] {
+     // Keep system message, truncate from middle
+     const systemMsg = messages.find(m => m.role === 'system')
+     const others = messages.filter(m => m.role !== 'system')
+
+     // Keep recent messages, remove old ones
+     while (countTokens(messages) > maxTokens && others.length > 2) {
+       others.shift()  // Remove oldest
+     }
+
+     return systemMsg ? [systemMsg, ...others] : others
+   }
+   ```
+2. Show token count in UI
+3. Allow user to clear history
+
+### Prevention
+- Monitor token count before sending
+- Warn when approaching limit
+
+---
+
+## Insufficient Credits
+
+### Symptom
+```
+Error: 402 Payment Required
+```
+
+### Cause
+OpenRouter account has insufficient credits.
+
+### Solution
+1. Display clear error to user
+2. Link to OpenRouter dashboard to add credits
+3. Consider showing estimated cost before sending
+
+### Prevention
+- Check credit balance periodically
+- Warn when credits are low
+
+---
+
+## Content Filter
+
+### Symptom
+```
+Error: 400 Bad Request - content_policy_violation
+```
+
+### Cause
+Request or response flagged by content moderation.
+
+### Solution
+1. Show user-friendly message explaining content policy
+2. Suggest rephrasing the request
+3. Log for review (without sensitive content)
+
+### Prevention
+- Pre-filter obvious violations
+- Show content guidelines to users
+
+---
+
 ## Error Response Format
 
 OpenRouter returns errors in this format:
