@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, shell, session } from 'electron'
 import { join } from 'path'
 import { registerIpcHandlers } from './ipc'
 
@@ -25,6 +25,44 @@ export function getAllowedOrigins(): string[] {
   return ['file://']
 }
 
+// Configure Content Security Policy
+function setupCSP(): void {
+  const devCSP = [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self' ws://localhost:* http://localhost:*",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+  ].join('; ')
+
+  const prodCSP = [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+  ].join('; ')
+
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [IS_DEV ? devCSP : prodCSP],
+      },
+    })
+  })
+}
+
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -43,7 +81,7 @@ function createWindow(): void {
       contextIsolation: true,
       // Security: Enable sandbox
       sandbox: true,
-      // Security: Keep web security enabled (rely on CSP instead)
+      // Security: Keep web security enabled
       webSecurity: true,
     },
   })
@@ -84,13 +122,23 @@ app.on('web-contents-created', (_, contents) => {
     const parsedUrl = new URL(navigationUrl)
     const allowedOrigins = getAllowedOrigins()
 
-    if (!allowedOrigins.some((origin) => parsedUrl.origin === origin || parsedUrl.protocol === 'file:')) {
+    // Allow navigation to file:// or whitelisted HTTP origins
+    const isFileProtocol = parsedUrl.protocol === 'file:'
+    const isAllowedOrigin = allowedOrigins.some((origin) => {
+      // For file:// origins, check protocol only
+      if (origin === 'file://') return isFileProtocol
+      // For HTTP origins, check exact origin match
+      return parsedUrl.origin === origin
+    })
+
+    if (!isAllowedOrigin) {
       event.preventDefault()
     }
   })
 })
 
 app.whenReady().then(() => {
+  setupCSP()
   registerIpcHandlers()
   createWindow()
 

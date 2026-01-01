@@ -46,18 +46,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 })
 
-// Type definitions for the exposed API
-declare global {
-  interface Window {
-    electronAPI: {
-      platform: NodeJS.Platform
-      getVersion: () => Promise<string>
-      minimizeWindow: () => Promise<void>
-      maximizeWindow: () => Promise<void>
-      closeWindow: () => Promise<void>
-      isMaximized: () => Promise<boolean>
-      invoke: (channel: string, ...args: unknown[]) => Promise<unknown>
-      on: (channel: string, callback: (...args: unknown[]) => void) => () => void
-    }
-  }
-}
+// Type definitions are in src/types/electron.d.ts
+// to avoid duplication and ensure consistency

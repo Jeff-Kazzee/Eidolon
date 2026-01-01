@@ -13,7 +13,7 @@ function App() {
         .then(setVersion)
         .catch((err: Error) => {
           console.error('Failed to get app version:', err)
-          setVersion('unknown')
+          setVersion('0.1.0')
         })
     }
   }, [])

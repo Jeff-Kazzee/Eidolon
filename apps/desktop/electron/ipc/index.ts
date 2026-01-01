@@ -15,9 +15,15 @@ function validateSender(event: IpcMainInvokeEvent): boolean {
 
   try {
     const parsedUrl = new URL(senderUrl)
-    return allowedOrigins.some(
-      (origin) => parsedUrl.origin === origin || parsedUrl.protocol === 'file:'
-    )
+
+    // Check if origin matches any allowed origin
+    // file:// URLs only allowed when 'file://' is explicitly in allowedOrigins
+    return allowedOrigins.some((origin) => {
+      if (origin === 'file://') {
+        return parsedUrl.protocol === 'file:'
+      }
+      return parsedUrl.origin === origin
+    })
   } catch {
     return false
   }
@@ -51,8 +57,10 @@ export function registerIpcHandlers(): void {
     } else {
       window?.maximize()
     }
+    const isMaximized = window?.isMaximized() ?? false
     // Notify renderer of state change
-    window?.webContents.send('window:maximized-change', window?.isMaximized())
+    window?.webContents.send('window:maximized-change', isMaximized)
+    return isMaximized
   })
 
   ipcMain.handle('window:close', (event) => {
