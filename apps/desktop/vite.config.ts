@@ -4,30 +4,22 @@ import electron from 'vite-plugin-electron'
 import { resolve } from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command, mode }) => {
-  // Use Vite's command/mode for accurate dev detection
+export default defineConfig(({ command }) => {
   // command === 'serve' for dev server, 'build' for production
-  const isDev = command === 'serve' || mode !== 'production'
+  const isDev = command === 'serve'
 
   // Allow env override for polling (useful for network drives or WSL)
   const usePolling = process.env.VITE_USE_POLLING === 'true'
 
   return {
     plugins: [
-      // React Fast Refresh for HMR
-      react({
-        // Enable Fast Refresh in development
-        fastRefresh: isDev,
-      }),
+      // React plugin (Fast Refresh enabled by default in dev)
+      react(),
       electron([
         {
           // Main process entry point
           entry: 'electron/main.ts',
           onstart(options) {
-            // Restart Electron when main process changes
-            if (isDev) {
-              console.log('[electron] Main process updated, restarting...')
-            }
             options.startup()
           },
           vite: {
@@ -45,10 +37,6 @@ export default defineConfig(({ command, mode }) => {
           // Preload script entry point
           entry: 'electron/preload.ts',
           onstart(options) {
-            // Notify the renderer process to reload when preload script changes
-            if (isDev) {
-              console.log('[electron] Preload script updated, reloading renderer...')
-            }
             options.reload()
           },
           vite: {
@@ -82,12 +70,7 @@ export default defineConfig(({ command, mode }) => {
     server: {
       port: 5173,
       strictPort: true,
-      // HMR inherits host/port from server config automatically
-      hmr: {
-        // Show overlay for runtime errors in dev
-        overlay: true,
-      },
-      // Watch configuration
+      // Watch configuration (polling opt-in for network drives/WSL)
       watch: usePolling
         ? {
             // Polling mode for network drives, WSL, or problematic file systems
