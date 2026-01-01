@@ -3,6 +3,10 @@
  * These types match the API exposed in electron/preload.ts
  */
 
+import type { DatabaseHealth } from '@eidolon/shared'
+
+export type { DatabaseHealth }
+
 export interface ElectronAPI {
   /** Current platform (darwin, win32, linux) */
   platform: NodeJS.Platform
@@ -21,6 +25,9 @@ export interface ElectronAPI {
 
   /** Check if the current window is maximized */
   isMaximized: () => Promise<boolean>
+
+  /** Get database health status */
+  dbHealth: () => Promise<DatabaseHealth>
 
   /** Generic IPC invoke for whitelisted channels */
   invoke: (channel: string, ...args: unknown[]) => Promise<unknown>

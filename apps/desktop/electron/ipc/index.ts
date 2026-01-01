@@ -1,8 +1,10 @@
 import { ipcMain, BrowserWindow, app, IpcMainInvokeEvent } from 'electron'
-import { getAllowedOrigins } from '../main'
+import { getAllowedOrigins, isUrlWithinAppRoot } from '../main'
+import { registerDatabaseHandlers } from './database'
 
 /**
  * Validates that the IPC event sender is from an allowed origin.
+ * In production, file:// URLs must be within the app bundle.
  * Returns true if valid, false otherwise.
  */
 function validateSender(event: IpcMainInvokeEvent): boolean {
@@ -17,11 +19,13 @@ function validateSender(event: IpcMainInvokeEvent): boolean {
     const parsedUrl = new URL(senderUrl)
 
     // Check if origin matches any allowed origin
-    // file:// URLs only allowed when 'file://' is explicitly in allowedOrigins
     return allowedOrigins.some((origin) => {
       if (origin === 'file://') {
-        return parsedUrl.protocol === 'file:'
+        // For file:// URLs, verify they're within the app root
+        // This prevents malicious local files from calling IPC
+        return parsedUrl.protocol === 'file:' && isUrlWithinAppRoot(senderUrl)
       }
+      // For HTTP origins (dev server), check exact origin match
       return parsedUrl.origin === origin
     })
   } catch {
@@ -78,4 +82,7 @@ export function registerIpcHandlers(): void {
     const window = BrowserWindow.fromWebContents(event.sender)
     return window?.isMaximized() ?? false
   })
+
+  // Register database handlers
+  registerDatabaseHandlers(validateSender)
 }

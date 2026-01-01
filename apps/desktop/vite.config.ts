@@ -28,7 +28,7 @@ export default defineConfig(({ command }) => {
               sourcemap: isDev ? 'inline' : false,
               minify: !isDev,
               rollupOptions: {
-                external: ['electron'],
+                external: ['electron', 'better-sqlite3'],
               },
             },
           },
@@ -45,7 +45,7 @@ export default defineConfig(({ command }) => {
               sourcemap: isDev ? 'inline' : false,
               minify: !isDev,
               rollupOptions: {
-                external: ['electron'],
+                external: ['electron', 'better-sqlite3'],
               },
             },
           },

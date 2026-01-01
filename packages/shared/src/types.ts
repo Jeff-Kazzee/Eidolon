@@ -222,6 +222,18 @@ export interface IPCChannels {
 }
 
 // ============================================
+// Database Types
+// ============================================
+
+export interface DatabaseHealth {
+  connected: boolean
+  path: string
+  walMode: boolean
+  foreignKeys: boolean
+  tableCount: number
+}
+
+// ============================================
 // Utility Types
 // ============================================
 

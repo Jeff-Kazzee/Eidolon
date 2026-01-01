@@ -1,6 +1,8 @@
-import { app, BrowserWindow, shell, session } from 'electron'
-import { join } from 'path'
+import { app, BrowserWindow, shell, session, dialog } from 'electron'
+import { join, resolve, sep } from 'path'
+import { fileURLToPath } from 'url'
 import { registerIpcHandlers } from './ipc'
+import { database, Migrator } from './db'
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -12,17 +14,100 @@ if (process.platform === 'linux') {
   app.disableHardwareAcceleration()
 }
 
+// Single instance lock: Prevent multiple instances from corrupting the database
+const gotTheLock = app.requestSingleInstanceLock()
+if (!gotTheLock) {
+  console.log('[App] Another instance is already running. Exiting.')
+  app.quit()
+}
+
 let mainWindow: BrowserWindow | null = null
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 const IS_DEV = !!VITE_DEV_SERVER_URL
 
-// Allowed origins for IPC validation
+/**
+ * Get the application root directory for security validation.
+ * Used by IPC handlers to validate file:// origins.
+ */
+export function getAppRoot(): string {
+  if (IS_DEV) {
+    // In dev, use the project root (parent of dist-electron)
+    return resolve(__dirname, '..')
+  }
+  // In production, use the app path
+  return app.getAppPath()
+}
+
+/**
+ * Validate if a file:// URL is within the app's trusted root.
+ */
+export function isUrlWithinAppRoot(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== 'file:') {
+      return false
+    }
+    const filePath = resolve(fileURLToPath(url))
+    const appRoot = resolve(getAppRoot()) + sep
+    return filePath.startsWith(appRoot)
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Get allowed origins for IPC validation.
+ * In dev: Vite dev server origin
+ * In prod: Only file:// URLs within app root
+ */
 export function getAllowedOrigins(): string[] {
   if (IS_DEV && VITE_DEV_SERVER_URL) {
     return [new URL(VITE_DEV_SERVER_URL).origin]
   }
   return ['file://']
+}
+
+/**
+ * Initialize database connection and run migrations.
+ * Migration failures are fatal - the app cannot run with a partial schema.
+ */
+async function initializeDatabase(): Promise<void> {
+  database.initialize()
+  database.connect()
+
+  // Resolve migrations path using app.isPackaged for reliability
+  const migrationsPath = app.isPackaged
+    ? join(process.resourcesPath!, 'migrations')
+    : join(__dirname, '../electron/db/migrations')
+
+  const migrator = new Migrator(database.getDb(), migrationsPath)
+  const result = migrator.migrate()
+
+  if (result.applied.length > 0) {
+    console.log(`[App] Applied ${result.applied.length} migration(s)`)
+  }
+
+  // Migration errors are FATAL - do not proceed with partial schema
+  if (result.errors.length > 0) {
+    const errorMessage = result.errors.join('\n')
+    console.error('[App] FATAL: Migration errors:', errorMessage)
+
+    database.close()
+
+    // Show blocking error dialog
+    dialog.showErrorBox(
+      'Database Migration Failed',
+      `Eidolon cannot start due to database migration errors:\n\n${errorMessage}\n\n` +
+        'Please report this issue or try reinstalling the application.'
+    )
+
+    app.exit(1)
+    return
+  }
+
+  const health = database.healthCheck()
+  console.log('[App] Database health:', health)
 }
 
 // Configure Content Security Policy
@@ -117,28 +202,60 @@ function createWindow(): void {
 }
 
 // Security: Limit navigation to app URLs only
+// Tightened to only allow file:// URLs within app root
 app.on('web-contents-created', (_, contents) => {
   contents.on('will-navigate', (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl)
-    const allowedOrigins = getAllowedOrigins()
 
-    // Allow navigation to file:// or whitelisted HTTP origins
-    const isFileProtocol = parsedUrl.protocol === 'file:'
-    const isAllowedOrigin = allowedOrigins.some((origin) => {
-      // For file:// origins, check protocol only
-      if (origin === 'file://') return isFileProtocol
-      // For HTTP origins, check exact origin match
-      return parsedUrl.origin === origin
-    })
-
-    if (!isAllowedOrigin) {
-      event.preventDefault()
+    // In dev mode, allow Vite dev server
+    if (IS_DEV && VITE_DEV_SERVER_URL) {
+      const devOrigin = new URL(VITE_DEV_SERVER_URL).origin
+      if (parsedUrl.origin === devOrigin) {
+        return // Allow
+      }
     }
+
+    // Only allow file:// URLs within app root
+    if (parsedUrl.protocol === 'file:') {
+      if (isUrlWithinAppRoot(navigationUrl)) {
+        return // Allow
+      }
+    }
+
+    // Block everything else
+    console.warn('[Security] Blocked navigation to:', navigationUrl)
+    event.preventDefault()
   })
 })
 
-app.whenReady().then(() => {
+// Handle second instance (when user tries to open another instance)
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore()
+    }
+    mainWindow.focus()
+  }
+})
+
+app.whenReady().then(async () => {
   setupCSP()
+
+  try {
+    await initializeDatabase()
+  } catch (error) {
+    console.error('[App] FATAL: Database initialization failed:', error)
+
+    dialog.showErrorBox(
+      'Database Initialization Failed',
+      `Eidolon cannot start due to a database error:\n\n${error instanceof Error ? error.message : String(error)}\n\n` +
+        'Please report this issue or try reinstalling the application.'
+    )
+
+    app.exit(1)
+    return
+  }
+
   registerIpcHandlers()
   createWindow()
 
@@ -155,4 +272,19 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+// Graceful shutdown: close database before quitting
+app.on('before-quit', () => {
+  database.close()
+})
+
+process.on('SIGINT', () => {
+  database.close()
+  app.quit()
+})
+
+process.on('SIGTERM', () => {
+  database.close()
+  app.quit()
 })
