@@ -55,6 +55,12 @@ CREATE INDEX idx_branches_document_id ON branches(document_id);
 
 -- Trigger: Validate documents.current_branch_id points to a branch in the same document
 -- SQLite doesn't support ALTER TABLE ADD CONSTRAINT, so we use triggers to enforce this
+--
+-- NOTE: On INSERT, current_branch_id must be NULL because branches reference documents,
+-- creating a chicken-and-egg problem. The workflow is:
+-- 1. INSERT document with current_branch_id = NULL
+-- 2. INSERT branch referencing the document
+-- 3. UPDATE document to set current_branch_id to the new branch
 CREATE TRIGGER validate_current_branch_id_insert
 BEFORE INSERT ON documents
 WHEN NEW.current_branch_id IS NOT NULL

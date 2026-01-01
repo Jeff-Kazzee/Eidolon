@@ -14,7 +14,6 @@
     "test": "echo 'Desktop: No tests yet' && exit 0",
     "clean": "rimraf dist dist-electron out release",
     "preview": "vite preview",
-    "postinstall": "npx @electron/rebuild -f -w better-sqlite3",
     "rebuild": "npx @electron/rebuild -f -w better-sqlite3"
   },
   "dependencies": {

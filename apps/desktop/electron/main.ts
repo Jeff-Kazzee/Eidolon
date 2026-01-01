@@ -72,13 +72,14 @@ export function getAllowedOrigins(): string[] {
  * Initialize database connection and run migrations.
  * Migration failures are fatal - the app cannot run with a partial schema.
  */
-async function initializeDatabase(): Promise<void> {
+function initializeDatabase(): void {
   database.initialize()
   database.connect()
 
   // Resolve migrations path using app.isPackaged for reliability
+  // Fallback to app.getAppPath() if resourcesPath is undefined
   const migrationsPath = app.isPackaged
-    ? join(process.resourcesPath!, 'migrations')
+    ? join(process.resourcesPath ?? app.getAppPath(), 'migrations')
     : join(__dirname, '../electron/db/migrations')
 
   const migrator = new Migrator(database.getDb(), migrationsPath)
@@ -281,10 +282,10 @@ app.on('before-quit', () => {
 
 process.on('SIGINT', () => {
   database.close()
-  app.quit()
+  app.exit(0)
 })
 
 process.on('SIGTERM', () => {
   database.close()
-  app.quit()
+  app.exit(0)
 })

@@ -81,7 +81,7 @@ export class Migrator {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
         checksum TEXT NOT NULL,
-        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        applied_at INTEGER NOT NULL DEFAULT (unixepoch())
       )
     `)
   }
@@ -232,7 +232,11 @@ export class Migrator {
           result.applied.push(migrationFile)
           console.log(`[Migrator] Applied: ${migrationFile}`)
         } catch (execError) {
-          this.db.exec('ROLLBACK')
+          try {
+            this.db.exec('ROLLBACK')
+          } catch {
+            // ROLLBACK can fail if transaction was already aborted - ignore
+          }
           throw execError
         }
       } catch (error) {
