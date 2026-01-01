@@ -17,6 +17,17 @@ files:
 extraMetadata:
   main: dist-electron/main.js
 
+# Include migrations in the final build
+extraResources:
+  - from: electron/db/migrations
+    to: migrations
+    filter:
+      - "*.sql"
+
+# Native modules must be unpacked from asar for Electron to load them
+asarUnpack:
+  - "**/node_modules/better-sqlite3/**/*"
+
 # macOS Configuration
 mac:
   category: public.app-category.productivity

@@ -169,6 +169,30 @@ gh pr create \
 gh pr merge --merge
 ```
 
+### 11. CRITICAL: Sync Main Back to Dev
+
+**This step is required to prevent future merge conflicts.**
+
+After merging to main, immediately sync main back into dev:
+
+```bash
+# Switch to dev and pull latest
+git checkout dev
+git pull origin dev
+
+# Merge main into dev (brings in the merge commit)
+git merge origin/main -m "chore: sync main into dev after release"
+
+# If conflicts occur, resolve them keeping the dev versions
+# (since dev has the latest code)
+
+# Push the synced dev branch
+git push origin dev
+```
+
+**Why this is necessary:**
+When a PR is merged to `main`, GitHub creates a merge commit that only exists in `main`. If you continue working on `dev` without syncing, the branches diverge. The next time you try to merge `dev` → `main`, Git will see conflicting histories and mark the PR as having merge conflicts.
+
 ## Commit Message Convention
 
 ```
@@ -320,4 +344,9 @@ gh pr merge --squash
 # Sync to production (after epic complete)
 gh pr create --base main --head dev
 gh pr merge --merge
+
+# CRITICAL: After merging to main, sync back to dev
+git checkout dev && git pull
+git merge origin/main -m "chore: sync main into dev after release"
+git push origin dev
 ```
