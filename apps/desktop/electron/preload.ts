@@ -15,6 +15,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeWindow: () => ipcRenderer.invoke('window:close'),
   isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
 
+  // Database
+  dbHealth: () => ipcRenderer.invoke('db:health'),
+
   // IPC communication pattern
   invoke: (channel: string, ...args: unknown[]) => {
     // Whitelist channels for security
@@ -24,6 +27,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       'window:maximize',
       'window:close',
       'window:isMaximized',
+      'db:health',
     ]
     if (validChannels.includes(channel)) {
       return ipcRenderer.invoke(channel, ...args)
